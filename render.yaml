@@ -3,7 +3,7 @@ services:
     name: xfas-logistics-backend
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt
+    buildCommand: python --version && pip install -r requirements.txt
     startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: MONGO_URL
@@ -11,7 +11,7 @@ services:
       - key: DB_NAME
         value: xfas_logistics
       - key: CORS_ORIGINS
-        value: https://your-netlify-app.netlify.app,http://localhost:3000
+        value: https://silver-smakager-4f7e69.netlify.app,http://localhost:3000
       - key: JWT_SECRET_KEY
         sync: false
       - key: JWT_ALGORITHM
@@ -19,4 +19,4 @@ services:
       - key: JWT_ACCESS_TOKEN_EXPIRE_MINUTES
         value: "30"
       - key: PYTHON_VERSION
-        value: 3.11.0
+        value: 3.11.9
