@@ -2,7 +2,7 @@
 import warnings
 warnings.filterwarnings("ignore", message=".*trapped.*error reading bcrypt version.*", category=UserWarning, module="passlib.handlers.bcrypt")
 
-from fastapi import FastAPI, APIRouter, Depends
+from fastapi import FastAPI, APIRouter, Depends, HTTPException
 from fastapi.security import HTTPBearer
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -35,14 +35,33 @@ load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
-# Add SSL parameters for better compatibility
+# Add comprehensive SSL parameters for Python 3.13 compatibility
 if 'mongodb+srv://' in mongo_url:
-    # For MongoDB Atlas, add SSL parameters
+    # For MongoDB Atlas, add comprehensive SSL parameters
     separator = '&' if '?' in mongo_url else '?'
-    mongo_url = f"{mongo_url}{separator}ssl=true&ssl_cert_reqs=CERT_NONE&tlsAllowInvalidCertificates=true"
+    # Use more permissive SSL settings for Python 3.13 compatibility
+    mongo_url = f"{mongo_url}{separator}ssl=true&ssl_cert_reqs=CERT_NONE&tlsAllowInvalidCertificates=true&tlsAllowInvalidHostnames=true&tlsInsecure=true&retryWrites=true&w=majority&authSource=admin&authMechanism=SCRAM-SHA-1"
 
-client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000)
-db = client[os.environ.get('DB_NAME', 'xfas_logistics')]
+try:
+    client = AsyncIOMotorClient(
+        mongo_url, 
+        serverSelectionTimeoutMS=10000,
+        connectTimeoutMS=10000,
+        socketTimeoutMS=10000,
+        maxPoolSize=10,
+        retryWrites=True
+    )
+    db = client[os.environ.get('DB_NAME', 'xfas_logistics')]
+    
+    # Test connection
+    logger.info("Testing MongoDB connection...")
+    # This will be tested in the health check endpoint
+    
+except Exception as e:
+    logger.error(f"Failed to connect to MongoDB: {e}")
+    # Don't fail startup, let health check handle it
+    client = None
+    db = None
 
 # Create the main app
 app = FastAPI(
@@ -56,6 +75,8 @@ api_router = APIRouter(prefix="/api")
 
 # Database dependency
 async def get_database() -> AsyncIOMotorDatabase:
+    if db is None:
+        raise HTTPException(status_code=503, detail="Database not available")
     return db
 
 # Define Models (legacy)
@@ -92,6 +113,14 @@ async def get_status_checks():
 @api_router.get("/health")
 async def health_check():
     try:
+        if db is None:
+            return {
+                "status": "unhealthy", 
+                "database": "not_initialized",
+                "error": "Database client not initialized",
+                "timestamp": datetime.utcnow()
+            }
+        
         # Test database connection
         await db.command("ping")
         return {
