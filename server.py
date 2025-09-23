@@ -35,7 +35,13 @@ load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
+# Add SSL parameters for better compatibility
+if 'mongodb+srv://' in mongo_url:
+    # For MongoDB Atlas, add SSL parameters
+    separator = '&' if '?' in mongo_url else '?'
+    mongo_url = f"{mongo_url}{separator}ssl=true&ssl_cert_reqs=CERT_NONE&tlsAllowInvalidCertificates=true"
+
+client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000)
 db = client[os.environ.get('DB_NAME', 'xfas_logistics')]
 
 # Create the main app
