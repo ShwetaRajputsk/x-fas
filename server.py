@@ -47,7 +47,7 @@ if 'mongodb+srv://' in mongo_url:
     # For MongoDB Atlas, add comprehensive SSL parameters
     separator = '&' if '?' in mongo_url else '?'
     # Use more permissive SSL settings for Python 3.13 compatibility
-    mongo_url = f"{mongo_url}{separator}ssl=true&ssl_cert_reqs=CERT_NONE&tlsAllowInvalidCertificates=true&tlsAllowInvalidHostnames=true&tlsInsecure=true&retryWrites=true&w=majority&authSource=admin&authMechanism=SCRAM-SHA-1"
+    mongo_url = f"{mongo_url}{separator}ssl=true&ssl_cert_reqs=CERT_NONE&tlsAllowInvalidCertificates=true&retryWrites=true&w=majority&authSource=admin&authMechanism=SCRAM-SHA-1"
 
 try:
     client = AsyncIOMotorClient(
