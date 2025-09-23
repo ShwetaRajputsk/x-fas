@@ -42,12 +42,12 @@ logger = logging.getLogger(__name__)
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
-# Add comprehensive SSL parameters for Python 3.13 compatibility
+# Add minimal SSL parameters for better compatibility
 if 'mongodb+srv://' in mongo_url:
-    # For MongoDB Atlas, add comprehensive SSL parameters
+    # For MongoDB Atlas, add minimal SSL parameters
     separator = '&' if '?' in mongo_url else '?'
-    # Use more permissive SSL settings for Python 3.13 compatibility
-    mongo_url = f"{mongo_url}{separator}ssl=true&ssl_cert_reqs=CERT_NONE&tlsAllowInvalidCertificates=true&retryWrites=true&w=majority&authSource=admin&authMechanism=SCRAM-SHA-1"
+    # Use minimal SSL settings for better compatibility
+    mongo_url = f"{mongo_url}{separator}retryWrites=true&w=majority"
 
 try:
     client = AsyncIOMotorClient(
