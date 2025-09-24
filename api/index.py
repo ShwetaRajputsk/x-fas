@@ -8,8 +8,8 @@ from pathlib import Path
 # Add the parent directory to the Python path
 sys.path.append(str(Path(__file__).parent.parent))
 
-# Import the FastAPI app from server.py
-from server import app
+# Import the Vercel-optimized server
+from server_vercel import app
 
 # Export the app for Vercel
 handler = app

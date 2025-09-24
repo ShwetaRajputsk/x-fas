@@ -78,7 +78,7 @@ def get_database():
 
 # Health check endpoint
 @app.get("/api/health")
-async def health_check():
+def health_check():
     try:
         client, database = get_mongo_client()
         if database is None:
@@ -106,7 +106,7 @@ async def health_check():
 
 # Root endpoint
 @app.get("/api/")
-async def root():
+def root():
     return {
         "message": "XFas Logistics API",
         "version": "1.0.0",
@@ -128,7 +128,7 @@ except ImportError as e:
 
 # Shutdown handler
 @app.on_event("shutdown")
-async def shutdown_db_client():
+def shutdown_db_client():
     global client
     if client is not None:
         client.close()
