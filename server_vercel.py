@@ -80,26 +80,17 @@ def get_database():
 @app.get("/api/health")
 def health_check():
     try:
-        client, database = get_mongo_client()
-        if database is None:
-            return {
-                "status": "unhealthy", 
-                "database": "not_initialized",
-                "error": "Database client not initialized",
-                "timestamp": datetime.utcnow()
-            }
-        
-        # Test database connection
-        client.admin.command('ping')
+        # Simple health check without MongoDB for now
         return {
             "status": "healthy",
-            "database": "connected",
+            "database": "not_tested",
+            "message": "Basic health check passed",
             "timestamp": datetime.utcnow()
         }
     except Exception as e:
         return {
             "status": "unhealthy", 
-            "database": "disconnected",
+            "database": "error",
             "error": str(e),
             "timestamp": datetime.utcnow()
         }
@@ -113,18 +104,27 @@ def root():
         "status": "operational"
     }
 
-# Include other routers (simplified for Vercel)
-try:
-    from routes.auth import router as auth_router
-    app.include_router(auth_router, prefix="/api")
-except ImportError as e:
-    logger.warning(f"Could not import auth router: {e}")
+# Simple test endpoint
+@app.get("/api/test")
+def test():
+    return {
+        "message": "Test endpoint working",
+        "timestamp": datetime.utcnow()
+    }
 
-try:
-    from routes.quotes import router as quotes_router
-    app.include_router(quotes_router, prefix="/api")
-except ImportError as e:
-    logger.warning(f"Could not import quotes router: {e}")
+# Include other routers (simplified for Vercel)
+# Temporarily disabled to isolate the issue
+# try:
+#     from routes.auth import router as auth_router
+#     app.include_router(auth_router, prefix="/api")
+# except ImportError as e:
+#     logger.warning(f"Could not import auth router: {e}")
+
+# try:
+#     from routes.quotes import router as quotes_router
+#     app.include_router(quotes_router, prefix="/api")
+# except ImportError as e:
+#     logger.warning(f"Could not import quotes router: {e}")
 
 # Shutdown handler
 @app.on_event("shutdown")
