@@ -45,26 +45,32 @@ mongo_url = os.environ['MONGO_URL']
 # For Vercel deployment, use SSL parameters from environment
 # The vercel.json already includes SSL parameters in MONGO_URL
 
-try:
-    client = AsyncIOMotorClient(
-        mongo_url, 
-        serverSelectionTimeoutMS=10000,
-        connectTimeoutMS=10000,
-        socketTimeoutMS=10000,
-        maxPoolSize=10,
-        retryWrites=True
-    )
-    db = client[os.environ.get('DB_NAME', 'xfas_logistics')]
+# Initialize MongoDB client (will be created on first use)
+client = None
+db = None
+
+def create_database_connection():
+    """Create database connection, creating it if needed"""
+    global client, db
     
-    # Test connection
-    logger.info("Testing MongoDB connection...")
-    # This will be tested in the health check endpoint
+    if client is None:
+        try:
+            client = AsyncIOMotorClient(
+                mongo_url, 
+                serverSelectionTimeoutMS=5000,
+                connectTimeoutMS=5000,
+                socketTimeoutMS=5000,
+                maxPoolSize=5,
+                retryWrites=True
+            )
+            db = client[os.environ.get('DB_NAME', 'xfas_logistics')]
+            logger.info("MongoDB client created successfully")
+        except Exception as e:
+            logger.error(f"Failed to create MongoDB client: {e}")
+            client = None
+            db = None
     
-except Exception as e:
-    logger.error(f"Failed to connect to MongoDB: {e}")
-    # Don't fail startup, let health check handle it
-    client = None
-    db = None
+    return db
 
 # Create the main app
 app = FastAPI(
@@ -78,9 +84,10 @@ api_router = APIRouter(prefix="/api")
 
 # Database dependency
 async def get_database() -> AsyncIOMotorDatabase:
-    if db is None:
+    database = create_database_connection()
+    if database is None:
         raise HTTPException(status_code=503, detail="Database not available")
-    return db
+    return database
 
 # Define Models (legacy)
 class StatusCheck(BaseModel):
@@ -116,7 +123,9 @@ async def get_status_checks():
 @api_router.get("/health")
 async def health_check():
     try:
-        if db is None:
+        # Create database connection
+        database = create_database_connection()
+        if database is None:
             return {
                 "status": "unhealthy", 
                 "database": "not_initialized",
@@ -125,7 +134,7 @@ async def health_check():
             }
         
         # Test database connection
-        await db.command("ping")
+        await database.command("ping")
         return {
             "status": "healthy",
             "database": "connected",
