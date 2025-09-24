@@ -17,7 +17,7 @@
     }
   ],
   "env": {
-    "MONGO_URL": "mongodb+srv://shwetakashyap942001_db_user:RcJ2L2ksOV0NMsPn@cluster0.cw5dmyv.mongodb.net/",
+    "MONGO_URL": "mongodb+srv://shwetakashyap942001_db_user:RcJ2L2ksOV0NMsPn@cluster0.cw5dmyv.mongodb.net/?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE&tlsAllowInvalidCertificates=true",
     "DB_NAME": "xfas_logistics",
     "JWT_SECRET_KEY": "ksHrzF47Sm7lHGue4FpmyFzE-7F1M1Eo9GdxgHb4rpw",
     "JWT_ALGORITHM": "HS256",

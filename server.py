@@ -42,12 +42,8 @@ logger = logging.getLogger(__name__)
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
-# Try different connection approaches for Python 3.13 compatibility
-if 'mongodb+srv://' in mongo_url:
-    # For MongoDB Atlas, try minimal parameters first
-    separator = '&' if '?' in mongo_url else '?'
-    # Use minimal SSL settings for maximum compatibility
-    mongo_url = f"{mongo_url}{separator}retryWrites=true&w=majority"
+# For Vercel deployment, use SSL parameters from environment
+# The vercel.json already includes SSL parameters in MONGO_URL
 
 try:
     client = AsyncIOMotorClient(
