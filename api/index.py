@@ -13,3 +13,10 @@ from server import app
 
 # Export the app for Vercel
 handler = app
+
+# For debugging
+if __name__ == "__main__":
+    print("Vercel entry point loaded successfully")
+    print(f"Python path: {sys.path}")
+    print(f"Current directory: {os.getcwd()}")
+    print(f"App: {app}")
